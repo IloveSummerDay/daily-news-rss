@@ -39,6 +39,7 @@ loadEnvFile()
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'pdfs'
+const TABLE_NAME = process.env.SUPABASE_TABLE_NAME || 'pdfs'
 
 // PDF path configuration - support environment variable and command line argument
 const PDFS_DIR = process.env.PDFS_DIR || process.argv[2] || path.join(__dirname, '..', 'pdfs')
@@ -86,12 +87,13 @@ function getAllPdfFiles(dir, baseDir = dir) {
 }
 
 /**
- * upload single PDF file to Supabase
+ * upload single PDF file to Supabase Storage and insert article info to Database
  * @param {string} localPath - local file path
  * @param {string} remotePath - remote file path
- * @returns {Promise<boolean>} whether upload is successful
+ * @param {Object} articleData - article data from JSON
+ * @returns {Promise<Object>} upload result with file URL
  */
-async function uploadPdfFile(localPath, remotePath) {
+async function uploadPdfFile(localPath, remotePath, articleData) {
 	try {
 		console.log(`📤 upload: ${remotePath}`)
 
@@ -106,15 +108,102 @@ async function uploadPdfFile(localPath, remotePath) {
 
 		if (error) {
 			console.error(`❌ upload failed ${remotePath}:`, error.message)
-			return false
+			return { success: false, error: error.message }
 		}
 
 		console.log(`✅ upload success: ${remotePath}`)
-		return true
+
+		// get signed URL for the uploaded file (for private bucket)
+		const { data: urlData, error: urlError } = await supabase.storage.from(BUCKET_NAME).createSignedUrl(remotePath, 60 * 60 * 24 * 365 * 30) // 30 years expiry
+
+		if (urlError) {
+			console.error(`❌ Failed to generate signed URL for ${remotePath}:`, urlError.message)
+			return { success: false, error: urlError.message }
+		}
+
+		const fileUrl = urlData.signedUrl
+		console.log(`🔗 Generated signed URL: ${fileUrl.slice(0, 100)}...`)
+
+		// insert article data to database table
+		let insertResult = null
+		if (articleData) {
+			insertResult = await insertArticleToDatabase(articleData, fileUrl)
+		}
+
+		return {
+			success: true,
+			fileUrl: fileUrl,
+			databaseInsert: insertResult
+		}
 	} catch (error) {
 		console.error(`❌ upload error ${remotePath}:`, error.message)
-		return false
+		return { success: false, error: error.message }
 	}
+}
+
+/**
+ * insert article data to Supabase Database table
+ * @param {Object} articleData - article data from JSON
+ * @param {string} fileUrl - uploaded PDF file URL
+ * @returns {Promise<Object>} database insert result
+ */
+async function insertArticleToDatabase(articleData, fileUrl) {
+	try {
+		// prepare data for database insertion
+		const dbData = {
+			title: articleData.title || 'untitled',
+			author: articleData.author || 'unknown',
+			datePublished: articleData.pubDate || new Date().toISOString(),
+			region: articleData.source_region,
+			topic: articleData.source_category || 'general',
+			filePath: fileUrl
+		}
+
+		console.log(`📝 inserting to database: ${articleData.id}`)
+
+		// insert to Supabase Database table
+		const { data, error } = await supabase.from(TABLE_NAME).insert([dbData]).select()
+
+		if (error) {
+			console.error(`❌ database insert failed:`, error.message)
+			return { success: false, error: error.message }
+		}
+
+		console.log(`✅ database insert success: ${dbData.title}`)
+		return { success: true, data: data }
+	} catch (error) {
+		console.error(`❌ database insert error:`, error.message)
+		return { success: false, error: error.message }
+	}
+}
+
+/**
+ * find article data by PDF path
+ * @param {string} pdfPath - PDF file path
+ * @param {Object} articlesData - articles data map
+ * @returns {Object|null} article data or null
+ */
+function findArticleDataByPdfPath(pdfPath, articlesData) {
+	// extract filename without extension
+	const fileName = path.basename(pdfPath, '.pdf')
+
+	// try to find article by matching URL path with filename
+	for (const [url, article] of Object.entries(articlesData)) {
+		try {
+			const urlObj = new URL(url)
+			const urlPath = urlObj.pathname.split('/').pop() || 'page'
+			const cleanUrlPath = urlPath.replace(/[^a-zA-Z0-9\-_]/g, '_')
+
+			if (cleanUrlPath === fileName) {
+				return article
+			}
+		} catch (error) {
+			// skip invalid URLs
+			continue
+		}
+	}
+
+	return null
 }
 
 /**
@@ -239,6 +328,33 @@ async function main() {
 		console.log(`📄 found ${pdfFiles.length} PDF files`)
 	}
 
+	// load article data from JSON
+	console.log('📖 loading article data...')
+
+	// { article url : article data for latest-raw.json }
+	let articlesData = {}
+	try {
+		const jsonPath = path.join(__dirname, '..', 'data', 'latest-raw.json')
+		if (fs.existsSync(jsonPath)) {
+			const jsonData = fs.readFileSync(jsonPath, 'utf8')
+			const data = JSON.parse(jsonData)
+			if (data.articles && Array.isArray(data.articles)) {
+				// create a map of articles by URL for quick lookup
+				articlesData = data.articles.reduce((acc, article) => {
+					// use URL as key for lookup
+					acc[article.url] = article
+					return acc
+				}, {})
+				console.log(`📚 loaded ${Object.keys(articlesData).length} articles from JSON`)
+			}
+		} else {
+			console.log('⚠️  no article data found, will skip database insertion')
+		}
+	} catch (error) {
+		console.error('❌ failed to load article data:', error.message)
+		console.log('⚠️  will skip database insertion')
+	}
+
 	// fill directory cache to check if file exist
 	await fillDirectoryCache(pdfFiles)
 
@@ -275,10 +391,21 @@ async function main() {
 					return { success: false, skip: true, error: false }
 				}
 
+				// find corresponding article data
+				const articleData = findArticleDataByPdfPath(file.remotePath, articlesData)
+				if (!articleData) {
+					console.log(`⚠️  no article data found for: ${file.fileName}`)
+				}
+
 				console.log(`📤 uploading: ${file.remotePath}`)
-				const success = await uploadPdfFile(file.localPath, file.remotePath)
-				if (success) {
+				const result = await uploadPdfFile(file.localPath, file.remotePath, articleData)
+				if (result.success) {
 					console.log(`✅ upload success: ${file.fileName}`)
+					if (result.databaseInsert && result.databaseInsert.success) {
+						console.log(`✅ database insert success: ${file.fileName}`)
+					} else if (result.databaseInsert && !result.databaseInsert.success) {
+						console.log(`⚠️  database insert failed: ${file.fileName}`)
+					}
 					return { success: true, skip: false, error: false }
 				} else {
 					console.log(`❌ upload failed: ${file.fileName}`)

@@ -255,7 +255,7 @@ async function crawlFeed(source, stats = null) {
 					source: source.name,
 					source_domain: extractDomain(url),
 					source_category: source.category,
-					source_priority: source.priority
+					source_region: source.language
 				})
 			}
 

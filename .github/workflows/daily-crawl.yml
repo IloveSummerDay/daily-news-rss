@@ -129,11 +129,12 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_BUCKET_NAME: ${{ secrets.SUPABASE_BUCKET_NAME || 'pdfs' }}
+          SUPABASE_TABLE_NAME: ${{ secrets.SUPABASE_TABLE_NAME || 'pdfs' }}
           PDFS_DIR: ${{ github.workspace }}/pdfs
         run: |
           echo "📁 Current workspace: ${{ github.workspace }}"
           echo "📁 PDF directory: ${{ env.PDFS_DIR }}"
-          
+
           # Debug: Check if environment variables are set (without exposing values)
           echo "🔍 Environment variables check:"
           if [ -n "$SUPABASE_URL" ]; then
@@ -141,17 +142,23 @@ jobs:
           else
             echo "❌ SUPABASE_URL is not set"
           fi
-          
+
           if [ -n "$SUPABASE_SERVICE_ROLE_KEY" ]; then
             echo "✅ SUPABASE_SERVICE_ROLE_KEY is set"
           else
             echo "❌ SUPABASE_SERVICE_ROLE_KEY is not set"
           fi
-          
+
           if [ -n "$SUPABASE_BUCKET_NAME" ]; then
             echo "✅ SUPABASE_BUCKET_NAME is set: $SUPABASE_BUCKET_NAME"
           else
             echo "⚠️ SUPABASE_BUCKET_NAME is not set, using default: pdfs"
+          fi
+
+          if [ -n "$SUPABASE_TABLE_NAME" ]; then
+            echo "✅ SUPABASE_TABLE_NAME is set: $SUPABASE_TABLE_NAME"
+          else
+            echo "⚠️ SUPABASE_TABLE_NAME is not set, using default: pdfs"
           fi
 
           # Check if PDF directory exists and has files
