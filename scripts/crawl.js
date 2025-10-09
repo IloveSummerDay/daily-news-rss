@@ -193,10 +193,14 @@ async function crawlFeed(source, stats = null) {
 			const feed = await parser.parseURL(source.url)
 			console.log(`📄 Feed articles length: ${feed.items.length}`)
 
-			// articles length limit
-			const itemLimit = 2
-			const items = feed.items.slice(0, itemLimit)
-			console.log(`itemLimit: ${itemLimit} items length: ${items.length}`)
+			// open articles length limit
+			// const itemLimit = 2
+			// const items = feed.items.slice(0, itemLimit)
+			// console.log(`itemLimit: ${itemLimit} items length: ${items.length}`)
+
+			// or close articles length limit
+			const items = feed.items
+			console.log(`articles items length: ${items.length}`)
 
 			for (const item of items) {
 				const title = cleanTitle(item.title || '')
