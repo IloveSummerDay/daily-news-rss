@@ -5,6 +5,54 @@
 			"url": "https://theconversation.com/us/business/articles.atom",
 			"category": "business",
 			"language": "us"
+		},
+		{
+			"name": "theconversation.com/us/arts",
+			"url": "https://theconversation.com/us/arts/articles.atom",
+			"category": "arts",
+			"language": "us"
+		},
+		{
+			"name": "theconversation.com/us/education",
+			"url": "https://theconversation.com/us/education/articles.atom",
+			"category": "education",
+			"language": "us"
+		},
+		{
+			"name": "theconversation.com/us/environment",
+			"url": "https://theconversation.com/us/environment/articles.atom",
+			"category": "environment",
+			"language": "us"
+		},
+		{
+			"name": "theconversation.com/us/ethics",
+			"url": "https://theconversation.com/us/ethics/articles.atom",
+			"category": "ethics",
+			"language": "us"
+		},
+		{
+			"name": "theconversation.com/us/health",
+			"url": "https://theconversation.com/us/health/articles.atom",
+			"category": "health",
+			"language": "us"
+		},
+		{
+			"name": "theconversation.com/us/politics",
+			"url": "https://theconversation.com/us/politics/articles.atom",
+			"category": "politics",
+			"language": "us"
+		},
+		{
+			"name": "theconversation.com/us/technology",
+			"url": "https://theconversation.com/us/technology/articles.atom",
+			"category": "technology",
+			"language": "us"
+		},
+		{
+			"name": "theconversation.com/us/world",
+			"url": "https://theconversation.com/us/world/articles.atom",
+			"category": "world",
+			"language": "us"
 		}
 	]
 }
