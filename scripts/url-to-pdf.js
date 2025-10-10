@@ -1,5 +1,5 @@
 import { promises as fs, readFileSync } from 'fs'
-import { dirname, join } from 'path'
+import { dirname, join, relative } from 'path'
 import { chromium } from 'playwright'
 import { fileURLToPath } from 'url'
 
@@ -264,7 +264,7 @@ async function urlsToPdf() {
 					const sourceDomainDir = join(outputDir, sourceDomain)
 					const existingPdfPath = await findExistingPdfInDirectory(sourceDomainDir, `${cleanFilename}.pdf`)
 					if (existingPdfPath) {
-						console.log(`⏭️ PDF already exists, skipping: ${sourceDomain}/${path.relative(sourceDomainDir, existingPdfPath)}`)
+						console.log(`⏭️ PDF already exists, skipping: ${sourceDomain}/${relative(sourceDomainDir, existingPdfPath)}`)
 						await page.close()
 						skippedCount++
 						console.log(`✅ Skipped existing PDF ${i + 1}/${sourceArticles.length} from ${sourceDomain}`)
