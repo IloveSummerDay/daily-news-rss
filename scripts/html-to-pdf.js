@@ -448,8 +448,7 @@ async function htmlToPdf() {
 					const pdfBuffer = await page.pdf({
 						path: pdfPath,
 						format: 'A4',
-						printBackground: true,
-						margin: { top: '1cm', bottom: '1cm', left: '1cm', right: '1cm' }
+						printBackground: true
 					})
 
 					console.log('[6/6] PDF generation completed')
@@ -529,5 +528,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 		})
 }
 
-export { htmlToPdf }
+export { generateHtmlContent, htmlToPdf }
 

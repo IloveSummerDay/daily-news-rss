@@ -48,7 +48,7 @@
         .page-container {
             max-width: 1080px;
             margin: auto;
-            padding: 2rem 2rem;
+            padding: 2rem 8rem;
             background-color: var(--color-surface);
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -187,9 +187,9 @@
         /* --- Print Styles --- */
         @media print {
 
-            /* Set margins for each printed page */
+            /* Set margins for each printed page - reduced to work with PDF margin */
             @page {
-                margin: 1in 1.3in;
+                margin: 0.2in;
                 size: letter;
             }
 
@@ -203,8 +203,8 @@
                 max-width: none !important;
                 width: 100% !important;
                 margin: 0 !important;
-                padding: 0 !important;
-                /* Remove container padding - @page handles it now */
+                padding: 2rem 8rem !important;
+                /* Minimal padding for print - @page and PDF margin handle spacing */
                 background-color: white !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
@@ -285,19 +285,20 @@
             .article-body>p:first-child {
                 page-break-before: avoid;
             }
-            
+
             /* Ensure content flows properly across pages */
             .article-body {
                 page-break-inside: auto;
             }
-            
+
             p {
                 page-break-inside: avoid;
                 orphans: 2;
                 widows: 2;
             }
-            
-            h1, h2 {
+
+            h1,
+            h2 {
                 page-break-after: avoid;
                 page-break-inside: avoid;
             }
