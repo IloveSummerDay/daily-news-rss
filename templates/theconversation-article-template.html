@@ -48,7 +48,7 @@
         .page-container {
             max-width: 1080px;
             margin: auto;
-            padding: 2rem 13rem;
+            padding: 2rem 2rem;
             background-color: var(--color-surface);
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -284,6 +284,22 @@
             /* Prevent awkward page breaks */
             .article-body>p:first-child {
                 page-break-before: avoid;
+            }
+            
+            /* Ensure content flows properly across pages */
+            .article-body {
+                page-break-inside: auto;
+            }
+            
+            p {
+                page-break-inside: avoid;
+                orphans: 2;
+                widows: 2;
+            }
+            
+            h1, h2 {
+                page-break-after: avoid;
+                page-break-inside: avoid;
             }
         }
     </style>
