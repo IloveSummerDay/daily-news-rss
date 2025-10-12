@@ -218,6 +218,36 @@ function loadHtmlTemplate(sourceDomain) {
 }
 
 /**
+ * Format publication date for display
+ * @param {string} pubDate - ISO date string
+ * @returns {string} formatted date string
+ */
+function formatPublicationDate(pubDate) {
+	if (!pubDate) return 'Published: Date not available'
+
+	try {
+		const date = new Date(pubDate)
+		const formattedDate = date.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		})
+		const formattedTime = date
+			.toLocaleTimeString('en-US', {
+				hour: 'numeric',
+				minute: '2-digit',
+				hour12: true,
+				timeZone: 'America/New_York'
+			})
+			.toLowerCase()
+			.replace(' ', '')
+		return `Published: ${formattedDate} ${formattedTime} EDT`
+	} catch (error) {
+		return 'Published: Date not available'
+	}
+}
+
+/**
  * Generate HTML content from article data using external template based on source domain
  * @param {Object} article - article object
  * @returns {string} HTML content
@@ -231,13 +261,15 @@ function generateHtmlContent(article) {
 	const rawContent = article.content || article.metaDescription || 'No content available'
 	const articleContent = cleanHtmlContent(rawContent)
 
-	const byline = article.author || 'Unknown Author'
+	const author = article.author || 'Unknown Author'
+	const pubDate = formatPublicationDate(article.pubDate)
 
 	// Replace template placeholders with actual data
 	return template
 		.replace('{{TITLE}}', article.title || 'Untitled Article')
 		.replace('{{ARTICLE_TITLE}}', article.title || 'Untitled Article')
-		.replace('{{BYLINE}}', byline)
+		.replace('{{AUTHOR}}', author)
+		.replace('{{PUB_DATE}}', pubDate)
 		.replace('{{ARTICLE_CONTENT}}', articleContent)
 }
 
