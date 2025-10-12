@@ -129,8 +129,8 @@ function cleanHtmlContent(htmlContent) {
 	cleanedContent = cleanedContent.replace(/<img([^>]*?)\s+srcset="[^"]*"([^>]*?)>/gi, '<img$1$2>')
 	cleanedContent = cleanedContent.replace(/<img([^>]*?)\s+sizes="[^"]*"([^>]*?)>/gi, '<img$1$2>')
 
-	// 4. Remove <figure> tags that contain <iframe> tags
-	cleanedContent = cleanedContent.replace(/<figure[^>]*>[\s\S]*?<iframe[^>]*>[\s\S]*?<\/iframe>[\s\S]*?<\/figure>/gi, '')
+	// 4. Remove <figure> tags that contain <iframe> tags (more precise matching)
+	cleanedContent = cleanedContent.replace(/<figure[^>]*>\s*<iframe[^>]*>[\s\S]*?<\/iframe>\s*<figcaption>[\s\S]*?<\/figcaption>\s*<\/figure>/gi, '')
 
 	// 5. Hide images with alt="The Conversation" by adding display:none style
 	cleanedContent = cleanedContent.replace(/<img([^>]*?)\s+alt="The Conversation"([^>]*?)>/gi, (match, before, after) => {
