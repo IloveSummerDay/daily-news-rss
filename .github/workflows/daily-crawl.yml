@@ -1,9 +1,9 @@
 name: Daily News Crawl
 
 on:
-  schedule:
-    - cron: '0 0,8,16 * * *'  # Runs 3 times daily every 8 hours (00:00, 08:00, 16:00 UTC)
-  workflow_dispatch: # Manual trigger for testing
+  # schedule:
+  #   - cron: '0 0,8,16 * * *'  # Runs 3 times daily every 8 hours (00:00, 08:00, 16:00 UTC)
+  # workflow_dispatch: # Manual trigger for testing
   # push:
   #     branches: [main] # Also run on pushes to main for testing
 
